@@ -12,7 +12,7 @@ import {
   agregarFotoPerfil,
   cerrarSesion,
   crearUsuario,
-  datosUsuaro,
+  datosUsuaro, eliminarFotoPerfil,
   eliminarUsuario,
   loginUsuario,
 } from "../../controllers/usuario/usuario.controller";
@@ -45,7 +45,7 @@ router.post("/usuario/cerrar", authValidar, cerrarSesion);
 
 // PUT - actualizar usuario
 router.put(
-  "/usuario/:id",
+  "/usuario",
   authValidar,
   schemaValidar(usuarioSchemaActualizarDatos),
   actualizarUsuarioDatos
@@ -78,5 +78,9 @@ router.put(
   schemaValidar(usuarioSchemaCombinarContrasena),
   actualizarContrasena
 );
+
+
+// DELETE - eliminar foto de perfil
+router.delete("/usuario/perfil/foto", authValidar, eliminarFotoPerfil);
 
 export default router;

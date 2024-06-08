@@ -13,7 +13,7 @@ export const authValidar = async (
     const { token } = req.cookies;
 
     if (!token) {
-      return res.status(401).json({ message: "No tienes acceso" });
+      return res.status(401).json({ message: ["No tienes acceso"] });
     }
 
     if (!secret) {

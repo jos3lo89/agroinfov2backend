@@ -18,3 +18,6 @@ const storage = multer.diskStorage({
 });
 
 export const uploadOne = multer({ storage });
+
+
+export const uploadMultiple = uploadOne.fields([{ name: 'foto1', maxCount: 1 }, { name: 'foto2', maxCount: 1 }]);

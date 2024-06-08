@@ -15,17 +15,19 @@ datasource db {
 
 // ************** USUARIO START **************
 model Usuario {
-  id                 String    @id @default(uuid()) @db.Char(36)
-  nombre             String    @db.VarChar(50)
-  apellido           String    @db.VarChar(50)
-  correo             String    @unique @db.VarChar(100)
-  clave              String    @db.VarChar(255)
-  foto_url           String?   @db.VarChar(255)
-  foto_id            String?   @db.VarChar(255)
-  rol                Rol
-  fecha_creacion     DateTime  @default(now()) 
-  fecha_actualizacion DateTime @updatedAt
-  telefonos          TelefonoUsuario[]
+  id                  String            @id @default(uuid()) @db.Char(36)
+  nombre              String            @db.VarChar(50)
+  apellido            String            @db.VarChar(50)
+  correo              String            @unique @db.VarChar(100)
+  clave               String            @db.VarChar(255)
+  foto_url            String?           @db.VarChar(255)
+  foto_id             String?           @db.VarChar(255)
+  rol                 Rol
+  fecha_creacion      DateTime          @default(now())
+  fecha_actualizacion DateTime          @updatedAt
+  telefonos           TelefonoUsuario[]
+  publicaciones       Publicaciones[]
+  reacciones          Reacciones[]
 }
 
 model TelefonoUsuario {
@@ -46,4 +48,124 @@ enum TipoTelefono {
   movil
   fijo
 }
+
 // ************** USUARIO END **************
+
+// ************** ASOCIACION START **************
+model Asociaciones {
+  id                  String                @id @default(uuid()) @db.Char(36)
+  admin_id            String                @db.Char(36)
+  nombre              String                @db.VarChar(100)
+  descripcion         String                @db.Text
+  portada_url         String                @db.VarChar(255)
+  portada_id          String?               @db.VarChar(255)
+  fecha_creacion      DateTime              @default(now())
+  fecha_actualizacion DateTime              @updatedAt
+  telefonos           TelefonosAsociacion[]
+  miembros            MiembrosAsociacion[]
+  publicaciones       Publicaciones[]
+  anuncios            Anuncios[]
+  // reuniones           Reuniones[]
+}
+
+model TelefonosAsociacion {
+  id     Int            @id @default(autoincrement())
+  tipo   TiposTelefonos
+  numero String         @db.VarChar(20)
+
+  asociacion_id String       @db.Char(36)
+  asociacion    Asociaciones @relation(fields: [asociacion_id], references: [id])
+}
+
+enum TiposTelefonos {
+  movil
+  fijo
+}
+
+model MiembrosAsociacion {
+  id            String       @id @default(uuid()) @db.Char(36)
+  asociacion_id String       @db.Char(36)
+  usuario_id    String       @db.Char(36)
+  rol           RolesMiembro
+  asociacion    Asociaciones @relation(fields: [asociacion_id], references: [id])
+  // asistencias   Asistencias[]
+}
+
+enum RolesMiembro {
+  miembro
+  administrador
+}
+                                   
+model Publicaciones {
+  id                  String   @id @default(uuid()) @db.Char(36)
+  asociacion_id       String   @db.Char(36)
+  titulo              String   @db.VarChar(255)
+  contenido1          String   @db.Text
+  contenido2          String?  @db.Text
+  foto1_url           String?  @db.VarChar(255)
+  foto1_id            String?  @db.VarChar(255)
+  foto2_url           String?  @db.VarChar(255)
+  foto2_id            String?  @db.VarChar(255)
+  fecha_publicacion   DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+
+  asociacion Asociaciones @relation(fields: [asociacion_id], references: [id])
+  Usuario    Usuario?     @relation(fields: [usuarioId], references: [id])
+  usuarioId  String?      @db.Char(36)
+
+  reacciones Reacciones[]
+}
+
+model Reacciones {
+  id             String        @id @default(uuid()) @db.Char(36)
+  publicacion_id String        @db.Char(36)
+  usuario_id     String        @db.Char(36)
+  tipo           TiposReaccion
+  fecha_reaccion DateTime      @default(now())
+  publicacion    Publicaciones @relation(fields: [publicacion_id], references: [id])
+  usuario        Usuario       @relation(fields: [usuario_id], references: [id])
+}
+
+enum TiposReaccion {
+  like
+  dislike
+}
+
+model Anuncios {
+  id                String   @id @default(uuid()) @db.Char(36)
+  asociacion_id     String   @db.Char(36)
+  titulo            String   @db.VarChar(255)
+  contenido         String   @db.Text
+  foto_url          String?  @db.VarChar(255)
+  foto_id           String?  @db.VarChar(255)
+  fecha_publicacion DateTime @default(now())
+
+  asosiacion Asociaciones @relation(fields: [asociacion_id], references: [id])
+}
+
+// model Reuniones {
+//   id String @id @default(uuid()) @db.Char(36)
+//   asociacion_id String @db.Char(36)
+//   titulo String @db.VarChar(255)
+//   descripcion String @db.Text
+//   fecha DateTime @db.DateTime
+//   lugar String @db.VarChar(255)
+//   asociacion Asociaciones @relation(fields: [asociacion_id], references: [id])
+//   asistencias Asistencias[]
+// }
+
+// model Asistencias {
+//   id String @id @default(uuid()) @db.Char(36)
+//   reunion_id String @db.Char(36)
+//   miembro_id String @db.Char(36)
+//   asistencia EstadoAsistencia
+//   reunion Reuniones @relation(fields: [reunion_id], references: [id])
+//   miembro MiembrosAsociacion @relation(fields: [miembro_id], references: [id])
+// }
+
+// enum EstadoAsistencia {
+//   presente
+//   ausente
+// }
+
+// ************** ASOCIACION END **************

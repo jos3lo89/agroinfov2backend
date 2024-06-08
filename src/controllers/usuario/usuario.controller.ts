@@ -21,7 +21,7 @@ export const crearUsuario = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({ message: "Usuario creado", usuario });
+    res.status(201).json({ message: ["Usuario creado"], usuario });
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: [error.message] });
@@ -65,7 +65,7 @@ export const loginUsuario = async (req: Request, res: Response) => {
           apellido: usuario.apellido,
           correo: usuario.correo,
           rol: usuario.rol,
-          foto_url: usuario.foto_url,
+          foto_url: !usuario.foto_url ? usuario.foto_url:`${process.env.URL_SERVER}${usuario.foto_url}` ,
           foto_id: usuario.foto_id,
         });
       }
@@ -103,8 +103,8 @@ export const datosUsuaro = async (req: Request, res: Response) => {
       apellido: ususario.apellido,
       correo: ususario.correo,
       rol: ususario.rol,
-      foto_url: ususario.foto_url,
-      foto_id: ususario.foto_id,
+      foto_url: !ususario.foto_url ? ususario.foto_url:`${process.env.URL_SERVER}${ususario.foto_url}` ,
+      foto_id: !ususario.foto_id ? ususario.foto_id: `${process.env.URL_SERVER}${ususario.foto_id}`,
       fecha_creacion: ususario.fecha_creacion,
       fecha_actualizacion: ususario.fecha_actualizacion,
     });
@@ -128,7 +128,8 @@ export const cerrarSesion = async (req: Request, res: Response) => {
 // POST - actualizar usuario datos
 export const actualizarUsuarioDatos = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    // const { id } = req.params;
+    const id = req.user?.id;
     const { nombre, apellido } = req.body;
 
     console.log(nombre, apellido, id);
@@ -192,7 +193,7 @@ export const agregarFotoPerfil = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json({ message: "perfil agregado" });
+    res.status(200).json({ foto_url: `${process.env.URL_SERVER}/uploads/${req.file.filename}` });
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: [error.message] });
@@ -211,13 +212,13 @@ export const actualizarFotoPerfil = async (req: Request, res: Response) => {
     });
 
     if (!userFound) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+      return res.status(400).json({ message: ["Usuario no encontrado"] });
     } else {
       await fs.unlink(`./public${userFound.foto_url}`);
     }
 
     if (!req.file) {
-      return res.status(400).json({ message: "No se ha enviado una imagen" });
+      return res.status(400).json({ message: ["No se ha enviado una imagen"] });
     }
 
     await prisma.usuario.update({
@@ -227,7 +228,7 @@ export const actualizarFotoPerfil = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json({ message: "perfil actualizado" });
+    res.status(200).json({ foto_url: `${process.env.URL_SERVER}/uploads/${req.file.filename}` });
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: [error.message] });
@@ -324,3 +325,39 @@ export const actualizarContrasena = async (req: Request, res: Response) => {
     res.status(500).json({ message: [error.message] });
   }
 };
+
+
+// DELETE - eliminar foto de perfil
+export const eliminarFotoPerfil = async (req: Request, res: Response) => {
+  try {
+    const id = req.user?.id;
+
+    const userFound = await prisma.usuario.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!userFound) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    if (!userFound.foto_url) {
+      return res.status(404).json({ message: "No existe una foto de perfil" });
+    }
+
+    await fs.unlink(`./public${userFound.foto_url}`);
+
+    await prisma.usuario.update({
+      where: { id },
+      data: {
+        foto_url: null,
+      },
+    });
+
+    res.status(200).json({ message: "Foto de perfil eliminada" });
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({ message: [error.message] });
+  }
+}
